@@ -1,0 +1,153 @@
+<!DOCTYPE html >
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <header th:include="fragments/common :: head"></header>
+    <script th:src="@{/echarts-2.2.7/echarts-all.js}"></script>
+</head>
+<body>
+    <div id="tab" class="tab tab-nav-bottom">
+        <!--选项卡标题部分-->
+        <div class="tab-title">
+            <ul>
+                <li>班级排名</li>
+                <li>成绩变化</li>
+                <li>丢分分析</li>
+                <li>汇总分析</li>
+                <!--<li>周三更新</li>-->
+                <!--<li>周四更新</li>-->
+                <!--<li>周五更新</li>-->
+                <!--<li>周六更新</li>-->
+                <!--<li>周日更新</li>-->
+                <span class="clearfix"></span>
+            </ul>
+        </div>
+        <!--选项卡内容部分-->
+        <div class="tab-content">
+            <div>
+                <div id="main1" style="width: 100%;height: 300px;"></div>
+            </div>
+            <div>
+                <div id="main2" style="width: 100%;height: 300px;"></div>
+            </div>
+            <div>
+                <div id="main3" style="width: 100%;height: 300px;"></div>
+            </div>
+            <div>
+                <div id="main4" style="width: 100%;height: 300px;"></div>
+            </div>
+            <!--<div>星期三</div>-->
+            <!--<div>星期四</div>-->
+            <!--<div>星期五</div>-->
+            <!--<div>星期六</div>-->
+            <!--<div>星期天</div>-->
+        </div>
+    </div>
+
+    <script>
+        javaex.tab({
+            id : "tab",		// tab的id
+            current : 1,		// 默认选中第几个选项卡
+            mode : "click",		// 鼠标点击切换选项卡
+            // 切换选项卡后返回一个对象，包含选项卡的索引，从1开始计
+            callback: function (rtn) {
+                $.get();
+
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main'+rtn.index));
+                var option;
+                if(rtn.index == 1){
+                    // 指定图表的配置项和数据
+                    option = {
+                        title: {
+                            text: "[[${student.userName}]]"+ "的成绩变化",
+                            // subtext: '纯属虚构'
+                        },
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data:['最高分数','最低分数']
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                dataZoom: {
+                                    yAxisIndex: 'none'
+                                },
+                                dataView: {readOnly: false},
+                                magicType: {type: ['line', 'bar']},
+                                restore: {},
+                                saveAsImage: {}
+                            }
+                        },
+                        xAxis:  {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: ['周一','周二','周三','周四','周五','周六','周日']
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                formatter: '{value}'
+                            }
+                        },
+                        series: [
+                            {
+                                name:'最高分数',
+                                type:'line',
+                                data:[11, 11, 15, 13, 12, 13, 10],
+                                markPoint: {
+                                    data: [
+                                        {type: 'max', name: '最大值'},
+                                        {type: 'min', name: '最小值'}
+                                    ]
+                                },
+                                markLine: {
+                                    data: [
+                                        {type: 'average', name: '平均值'}
+                                    ]
+                                }
+                            },
+                            {
+                                name:'最低分数',
+                                type:'line',
+                                data:[1, -2, 2, 5, 3, 2, 0],
+                                markPoint: {
+                                    data: [
+                                        {name: '最低分', value: -2, xAxis: 1, yAxis: -1.5}
+                                    ]
+                                },
+                                markLine: {
+                                    data: [
+                                        {type: 'average', name: '平均值'},
+                                        [{
+                                            symbol: 'none',
+                                            x: '90%',
+                                            yAxis: 'max'
+                                        }, {
+                                            symbol: 'circle',
+                                            label: {
+                                                normal: {
+                                                    position: 'start',
+                                                    formatter: '最大值'
+                                                }
+                                            },
+                                            type: 'max',
+                                            name: '最高分'
+                                        }]
+                                    ]
+                                }
+                            }
+                        ]
+                    };
+                }
+
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+                console.log(rtn.index);
+                // alert(rtn.index);
+            }
+        });
+    </script>
+</body>
+</html>

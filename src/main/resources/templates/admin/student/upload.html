@@ -1,0 +1,113 @@
+<!DOCTYPE html >
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <header th:include="fragments/common :: head"></header>
+    <script th:inline="javascript">
+        $(function(){
+            $("#uploadClick").click(function(){
+                $("#uploadFile").click();
+            });
+            $("#uploadFileName").click(function(){
+                $("#uploadFile").click();
+            });
+            $("#uploadFile").change(function () {
+                $("#uploadFileName").val(this.value);
+            });
+        });
+
+        function doSubmit() {
+            javaex.optTip({
+                content : "数据提交中，请稍候...",
+                type : "submit"
+            });
+            $("#uploadForm").ajaxSubmit({
+                contentType : false,
+                processData : false,
+                success : function(data) {
+                    if (data.status == 200) {
+                        javaex.optTip({
+                            content : "上传成功！",
+                            type : "success"
+                        });
+                        // 建议延迟加载
+                        setTimeout(function() {
+                            parent.javaex.close();
+                            parent.location.reload();
+                        }, 2000);
+                    }else{
+                        javaex.optTip({
+                            content : "上传失败，原因：" + data.message,
+                            type : "error",
+                            live : 2000
+                        });
+                    }
+                }
+            })
+        }
+    </script>
+
+</head>
+<body>
+
+<!--全部主体内容-->
+<div class="list-content">
+    <!--块元素-->
+    <div class="block">
+        <!--正文内容-->
+        <div class="main">
+            <form id="uploadForm" method="post" th:action="@{/student/upload}" enctype="multipart/form-data">
+
+                <!--文本框-->
+                <div class="unit">
+                    <div class="left"><span class="required">*</span><p class="subtitle">当前学年</p></div>
+                    <div class="right">
+                        <input type="text"  class="Wdate" onfocus="WdatePicker({dateFmt:'yyyy',readOnly:true})" name="schoolYear" data-type="必填" error-msg="必填" error-pos="42" placeholder="请输入考试名称" />
+                    </div>
+                    <!--清浮动-->
+                    <span class="clearfix"></span>
+                </div>
+
+                <!--文本框-->
+                <div class="unit">
+                    <div class="left"><span class="required">*</span><p class="subtitle">班级编号</p></div>
+                    <div class="right">
+                        <input type="text" class="text" name="classCode" data-type="必填" error-msg="必填" error-pos="42" style="width: 400px" placeholder="请输入班级编号" />
+                    </div>
+                    <!--清浮动-->
+                    <span class="clearfix"></span>
+                </div>
+
+                <!--文本框-->
+                <div class="unit">
+                    <div class="left"><span class="required">*</span><p class="subtitle">班级名称</p></div>
+                    <div class="right">
+                        <input type="text" class="text" name="className" data-type="必填" error-msg="必填" error-pos="42" style="width: 400px" placeholder="请输入班级名称" />
+                    </div>
+                    <!--清浮动-->
+                    <span class="clearfix"></span>
+                </div>
+
+                <div class="unit">
+                    <div class="left"><span class="required">*</span><p class="subtitle">上传学生名单</p></div>
+                    <div class="right">
+                        <a type="button" id="uploadClick" class="button blue" href="javascript:;"><span class="icon-cloud_upload"></span> 文件上传</a>
+                        <input type="file" id="uploadFile" name="uploadFile" style="display: none" />
+                        <input type="text"  class="text" id="uploadFileName"  name="uploadFileName" readonly="readonly" style="width: 300px;cursor: pointer;" />
+                    </div>
+                </div>
+
+                <div class="unit">
+                    <div style="text-align: center;">
+                        <!--表单提交时，必须是input元素，并指定type类型为button，否则ajax提交时，会返回error回调函数-->
+                        <input type="button" id="return" class="button no" value="返回" />
+                        <input type="button" id="comfire" class="button yes" onclick="doSubmit()" value="确定" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<body/>
+<html/>
