@@ -20,6 +20,9 @@ public class AnswerPaperStat implements Serializable {
 	@Column(name = "total_actual_score")
 	private BigDecimal totalActualScore;
 
+	@Transient
+	private Integer ranking;
+
 	@ManyToOne(cascade = CascadeType.REFRESH)
 	@JsonIgnore
 	@JoinColumn(name="user_id")
@@ -29,6 +32,11 @@ public class AnswerPaperStat implements Serializable {
 	@JsonIgnore
 	@JoinColumn(name="exam_paper_id")
 	private ExamPaper examPaper;
+
+	@ManyToOne(cascade = CascadeType.REFRESH)
+	@JsonIgnore
+	@JoinColumn(name="class_group_id")
+	private ClassGroup classGroup;
 
 	@OneToMany(mappedBy = "answerPaperStat", cascade = CascadeType.ALL)
 	@JsonIgnore
@@ -50,6 +58,14 @@ public class AnswerPaperStat implements Serializable {
         this.totalActualScore = totalActualScore;
     }
 
+	public Integer getRanking() {
+		return ranking;
+	}
+
+	public void setRanking(Integer ranking) {
+		this.ranking = ranking;
+	}
+
 	public Student getStudent() {
 		return student;
 	}
@@ -64,6 +80,14 @@ public class AnswerPaperStat implements Serializable {
 
 	public void setExamPaper(ExamPaper examPaper) {
 		this.examPaper = examPaper;
+	}
+
+	public ClassGroup getClassGroup() {
+		return classGroup;
+	}
+
+	public void setClassGroup(ClassGroup classGroup) {
+		this.classGroup = classGroup;
 	}
 
 	public Set<AnswerQuestionTypeStat> getAnswerQuestionTypeStats() {
