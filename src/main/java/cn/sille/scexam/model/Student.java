@@ -21,7 +21,7 @@ public class Student implements Serializable {
     @Column(name = "user_name")
 	private String userName;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.REFRESH)
     @JsonIgnore
     @JoinColumn(name="class_id")
     private ClassGroup classGroup;

@@ -80,9 +80,9 @@ public class StudentServiceImpl implements StudentService {
     @Transactional
 	public void uploadAndSaveList(MultipartFile uploadFile, ClassGroup classGroup){
 		try {
+            classGroup = classGroupRepository.getOne(classGroup.getId());
 			List<Student> studentList =  getDataFromExcel(uploadFile, classGroup);
-            classGroup.setStudents(new HashSet<>(studentList));
-            classGroupRepository.save(classGroup);
+            studentRepository.saveAll(studentList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

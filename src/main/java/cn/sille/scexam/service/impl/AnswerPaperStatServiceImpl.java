@@ -1,18 +1,12 @@
 package cn.sille.scexam.service.impl;
 
 import cn.sille.scexam.model.*;
-import cn.sille.scexam.repository.ClassGroupRepository;
-import cn.sille.scexam.repository.ExamPaperRepository;
-import cn.sille.scexam.repository.StudentRepository;
+import cn.sille.scexam.repository.*;
 import cn.sille.scexam.service.AnswerPaperStatService;
-import cn.sille.scexam.repository.AnswerPaperStatRepository;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -42,6 +36,8 @@ public class AnswerPaperStatServiceImpl implements AnswerPaperStatService {
     private StudentRepository studentRepository;
     @Autowired
     private ClassGroupRepository classGroupRepository;
+    @Autowired
+    private ExamClassRepository examClassRepository;
 
 	@Override
 	@Transactional(propagation=Propagation.REQUIRED,isolation=Isolation.DEFAULT,timeout=36000,rollbackFor=Exception.class)
@@ -82,10 +78,14 @@ public class AnswerPaperStatServiceImpl implements AnswerPaperStatService {
     @Override
 	public void uploadAndSaveList(MultipartFile uploadFile, Long examPaperId, Long classGroupId){
         try {
-			ExamPaper examPaper = examPaperRepository.getOne(examPaperId);
+            ExamPaper examPaper = examPaperRepository.getOne(examPaperId);
             ClassGroup classGroup = classGroupRepository.getOne(classGroupId);
             List<AnswerPaperStat> answerPaperStatList =  getDataFromExcel(uploadFile, examPaper, classGroup);
+            answerPaperStatRepository.deleteAllByExamPaperAndClassGroup(examPaper, classGroup);
             answerPaperStatRepository.saveAll(answerPaperStatList);
+            ExamClass examClass = examClassRepository.findByExamPaperAndClassGroup(examPaper, classGroup);
+            examClass.setStatus(ExamClassStatus.UPLOADED);
+            examClassRepository.save(examClass);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -132,6 +132,7 @@ public class AnswerPaperStatServiceImpl implements AnswerPaperStatService {
             answerPaperStat = new AnswerPaperStat();
             answerPaperStat.setStudent(student);
             answerPaperStat.setExamPaper(examPaper);
+            answerPaperStat.setClassGroup(classGroup);
 
             double totalActualScore = row.getCell(totalCellNum - 1).getNumericCellValue();
             answerPaperStat.setTotalActualScore(new BigDecimal(totalActualScore));
@@ -151,7 +152,6 @@ public class AnswerPaperStatServiceImpl implements AnswerPaperStatService {
             }
             answerPaperStat.setAnswerQuestionTypeStats(answerQuestionTypeStats);
             answerPaperStatList.add(answerPaperStat);
-
         }
         return answerPaperStatList;
     }

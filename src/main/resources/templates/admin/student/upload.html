@@ -14,6 +14,10 @@
             $("#uploadFile").change(function () {
                 $("#uploadFileName").val(this.value);
             });
+            javaex.select({
+                id : "id",
+                isSearch : false
+            });
         });
 
         function doSubmit() {
@@ -58,31 +62,14 @@
         <div class="main">
             <form id="uploadForm" method="post" th:action="@{/student/upload}" enctype="multipart/form-data">
 
-                <!--文本框-->
+                <!--下拉选择框-->
                 <div class="unit">
-                    <div class="left"><span class="required">*</span><p class="subtitle">当前学年</p></div>
+                    <div class="left"><span class="required">*</span><p class="subtitle">班级</p></div>
                     <div class="right">
-                        <input type="text"  class="Wdate" onfocus="WdatePicker({dateFmt:'yyyy',readOnly:true})" name="schoolYear" data-type="必填" error-msg="必填" error-pos="42" placeholder="请输入考试名称" />
-                    </div>
-                    <!--清浮动-->
-                    <span class="clearfix"></span>
-                </div>
-
-                <!--文本框-->
-                <div class="unit">
-                    <div class="left"><span class="required">*</span><p class="subtitle">班级编号</p></div>
-                    <div class="right">
-                        <input type="text" class="text" name="classCode" data-type="必填" error-msg="必填" error-pos="42" style="width: 400px" placeholder="请输入班级编号" />
-                    </div>
-                    <!--清浮动-->
-                    <span class="clearfix"></span>
-                </div>
-
-                <!--文本框-->
-                <div class="unit">
-                    <div class="left"><span class="required">*</span><p class="subtitle">班级名称</p></div>
-                    <div class="right">
-                        <input type="text" class="text" name="className" data-type="必填" error-msg="必填" error-pos="42" style="width: 400px" placeholder="请输入班级名称" />
+                        <select id="id" name="id">
+                            <option value="">请选择</option>
+                            <option  th:each="model : ${classGroupList}" th:value="${model.id}" th:text="${model.className}"></option>
+                        </select>
                     </div>
                     <!--清浮动-->
                     <span class="clearfix"></span>

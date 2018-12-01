@@ -2,6 +2,7 @@ package cn.sille.scexam.controller;
 
 import cn.sille.scexam.model.ClassGroup;
 import cn.sille.scexam.model.Student;
+import cn.sille.scexam.service.ClassGroupService;
 import cn.sille.scexam.service.StudentService;
 import cn.sille.scexam.util.Result;
 
@@ -20,12 +21,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @Controller
 @RequestMapping("/student")
 public class StudentController {
 	@Autowired
 	private StudentService studentService;
+	@Autowired
+	private ClassGroupService classGroupService;
 
 	@PostMapping("/add")
 	public Result add(@RequestBody Student student){
@@ -92,6 +96,8 @@ public class StudentController {
 
 	@RequestMapping("/uploadPage")
 	public String uploadPage(HttpServletRequest request) {
+		List<ClassGroup> classGroupList = classGroupService.getAll();
+		request.setAttribute("classGroupList", classGroupList);
 		return "/admin/student/upload";
 	}
 

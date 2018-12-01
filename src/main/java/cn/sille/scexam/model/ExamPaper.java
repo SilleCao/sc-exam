@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ public class ExamPaper implements Serializable {
 	private String title;
 
 	@Column(name = "total_score")
-	private Integer totalScore;
+	private BigDecimal totalScore;
 
 	@Column(name = "limit_time")
 	private Integer limitTime;
@@ -52,11 +53,11 @@ public class ExamPaper implements Serializable {
 		this.title = title;
 	}
 
-	public Integer getTotalScore() {
+	public BigDecimal getTotalScore() {
 		return totalScore;
 	}
 
-	public void setTotalScore(Integer totalScore) {
+	public void setTotalScore(BigDecimal totalScore) {
 		this.totalScore = totalScore;
 	}
 

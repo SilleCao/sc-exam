@@ -2,9 +2,12 @@ package cn.sille.scexam.controller;
 
 import cn.sille.scexam.model.*;
 import cn.sille.scexam.repository.ClassGroupRepository;
+import cn.sille.scexam.repository.ExamClassRepository;
 import cn.sille.scexam.service.AnswerPaperStatService;
 import cn.sille.scexam.service.ExamPaperService;
 import cn.sille.scexam.util.Result;
+
+import java.text.SimpleDateFormat;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
@@ -13,10 +16,12 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +36,8 @@ public class ExamPaperController {
     private AnswerPaperStatService answerPaperStatService;
     @Autowired
     private ClassGroupRepository classGroupRepository;
+    @Autowired
+    private ExamClassRepository examClassRepository;
 
     @RequestMapping("/add")
     public String add(ModelMap model) {
@@ -68,6 +75,7 @@ public class ExamPaperController {
                     classGroup.setId(Long.parseLong(classId));
                     examClass.setClassGroup(classGroup);
                     examClass.setExamPaper(examPaper);
+                    examClass.setStatus(ExamClassStatus.UNUPLOAD);
                     examClasses.add(examClass);
                 }
                 examPaper.setExamClasses(examClasses);
@@ -136,16 +144,30 @@ public class ExamPaperController {
 
     @RequestMapping("/uploadPage")
     public String uploadPage(HttpServletRequest request) {
-        List<ClassGroup> classGroupList = classGroupRepository.findAll();
-        request.setAttribute("classGroupList", classGroupList);
-        request.setAttribute("examPaperId", request.getParameter("id"));
+        String examPaperId = request.getParameter("examPaperId");
+        ExamPaper examPaper = new ExamPaper();
+        examPaper.setId(Long.parseLong(examPaperId));
+        List<ExamClass> examClasses = examClassRepository.findAllByExamPaper(examPaper);
+        request.setAttribute("examClasses", examClasses);
+        request.setAttribute("examPaperId", examPaperId);
         return "/admin/examPaper/upload";
+    }
+
+    @RequestMapping("/downloadPage")
+    public String downloadExcelPage(HttpServletRequest request) {
+        String examPaperId = request.getParameter("id");
+        ExamPaper examPaper = new ExamPaper();
+        examPaper.setId(Long.parseLong(examPaperId));
+        List<ExamClass> examClasses = examClassRepository.findAllByExamPaper(examPaper);
+        request.setAttribute("examClasses", examClasses);
+        request.setAttribute("examPaperId", examPaperId);
+        return "/admin/examPaper/download";
     }
 
     @RequestMapping("/downloadExcel")
     public void createExcel(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String id = request.getParameter("id");
-        String classId = request.getParameter("classId");
+        String classGroupId = request.getParameter("classGroupId");
         if (StringUtils.isNotBlank(id)) {
             ExamPaper examPaper = examPaperService.get(Long.parseLong(id));
             String fileName = examPaper.getTitle() + "-导入模板.xlsx";
@@ -185,7 +207,7 @@ public class ExamPaperController {
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, mergeCount - 1));
 
             int startRow = 2;
-            ClassGroup classGroup = classGroupRepository.getOne(Long.parseLong(classId));
+            ClassGroup classGroup = classGroupRepository.getOne(Long.parseLong(classGroupId));
             if (classGroup != null & classGroup.getStudents() != null){
                 List<Student> studentList = new ArrayList<>(classGroup.getStudents());
                 Collections.sort(studentList, new Comparator(){
@@ -227,5 +249,11 @@ public class ExamPaperController {
         }
     }
 
+    @InitBinder
+    protected void init(HttpServletRequest request, ServletRequestDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
 
 }

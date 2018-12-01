@@ -2,14 +2,20 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <header th:include="fragments/common :: head"></header>
-    <script th:src="@{/echarts-2.2.7/echarts-all.js}"></script>
+    <script th:src="@{/echarts-2.2.7/echarts.min.js}"></script>
+    <script th:src="@{/echarts-2.2.7/theme/macarons.js}"></script>
+    <script th:src="@{/echarts-2.2.7/theme/dark.js}"></script>
+    <script th:src="@{/echarts-2.2.7/theme/infographic.js}"></script>
+    <script th:src="@{/echarts-2.2.7/theme/roma.js}"></script>
+    <script th:src="@{/echarts-2.2.7/theme/shine.js}"></script>
+    <script th:src="@{/echarts-2.2.7/theme/vintage.js}"></script>
 </head>
 <body>
     <div id="tab" class="tab tab-nav-bottom">
         <!--选项卡标题部分-->
         <div class="tab-title">
             <ul>
-                <li>班级排名</li>
+                <li>成绩排名</li>
                 <li>成绩变化</li>
                 <li>丢分分析</li>
                 <li>汇总分析</li>
@@ -30,7 +36,7 @@
                 <div id="main2" style="width: 100%;height: 300px;"></div>
             </div>
             <div>
-                <div id="main3" style="width: 100%;height: 300px;"></div>
+                <div id="main3" style="width: 100%;"></div>
             </div>
             <div>
                 <div id="main4" style="width: 100%;height: 300px;"></div>
@@ -50,102 +56,134 @@
             mode : "click",		// 鼠标点击切换选项卡
             // 切换选项卡后返回一个对象，包含选项卡的索引，从1开始计
             callback: function (rtn) {
-                $.get();
-
-                // 基于准备好的dom，初始化echarts实例
-                var myChart = echarts.init(document.getElementById('main'+rtn.index));
-                var option;
-                if(rtn.index == 1){
-                    // 指定图表的配置项和数据
-                    option = {
-                        title: {
-                            text: "[[${student.userName}]]"+ "的成绩变化",
-                            // subtext: '纯属虚构'
-                        },
-                        tooltip: {
-                            trigger: 'axis'
-                        },
-                        legend: {
-                            data:['最高分数','最低分数']
-                        },
-                        toolbox: {
-                            show: true,
-                            feature: {
-                                dataZoom: {
-                                    yAxisIndex: 'none'
+                var echartType = rtn.index == 1 ? "ranking" : rtn.index == 2 ? "achievement" :
+                    rtn.index == 3 ? "lossScore" : "collect";
+                $.get("[[@{/statistic/getStudentStatisticData}]]",{
+                    "id":[[${student.id}]], "echartType":echartType
+                },function(data){
+                    if(data.status=="200"){
+                        // 基于准备好的dom，初始化echarts实例
+                        var myChart = echarts.init(document.getElementById('main'+rtn.index), 'infographic');
+                        var option;
+                        if(rtn.index == 1){
+                            option = {
+                                legend: {
+                                    data:['班级排名','年级排名']
                                 },
-                                dataView: {readOnly: false},
-                                magicType: {type: ['line', 'bar']},
-                                restore: {},
-                                saveAsImage: {}
+                                tooltip: {
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        animation: false
+                                    }
+                                },
+                                xAxis: {
+                                    type: 'category',
+                                    data: data.data.title,
+                                    position: 'top'
+                                },
+                                yAxis: {
+                                    type: 'value',
+                                    inverse: true
+                                },
+                                series: [{
+                                    name: '班级排名',
+                                    data: data.data.classRanking,
+                                    type: 'line'
+                                },{
+                                    name: '年级排名',
+                                    data: data.data.gradeRanking,
+                                    type: 'line'
+                                }]
+                            };
+                            // 使用刚指定的配置项和数据显示图表。
+                            myChart.setOption(option);
+                        }else if(rtn.index == 2){
+                            option = {
+                                title: {
+                                    subtext: '成绩为百分制换算',
+                                    x: 'left'
+                                },
+                                legend: {
+                                    data:['个人成绩','班级平均成绩','年级平均成绩']
+                                },
+                                tooltip: {
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        animation: false
+                                    }
+                                },
+                                xAxis: {
+                                    type: 'category',
+                                    data: data.data.title
+                                },
+                                yAxis: {
+                                    type: 'value'
+                                },
+                                series: [{
+                                    name: '个人成绩',
+                                    data: data.data.selfScore,
+                                    type: 'line'
+                                },{
+                                    name: '班级平均成绩',
+                                    data: data.data.classAverageScore,
+                                    type: 'line'
+                                },{
+                                    name: '年级平均成绩',
+                                    data: data.data.gradeAverageScore,
+                                    type: 'line'
+                                }]
+                            };
+                            // 使用刚指定的配置项和数据显示图表。
+                            myChart.setOption(option);
+                        }else if(rtn.index == 3){
+                            var shtml = "";
+                            for(var key in data.data){
+                                shtml += "<div id=\"submain"+key+"\" style=\"width: 100%;height: 300px;\"></div>"
                             }
-                        },
-                        xAxis:  {
-                            type: 'category',
-                            boundaryGap: false,
-                            data: ['周一','周二','周三','周四','周五','周六','周日']
-                        },
-                        yAxis: {
-                            type: 'value',
-                            axisLabel: {
-                                formatter: '{value}'
-                            }
-                        },
-                        series: [
-                            {
-                                name:'最高分数',
-                                type:'line',
-                                data:[11, 11, 15, 13, 12, 13, 10],
-                                markPoint: {
-                                    data: [
-                                        {type: 'max', name: '最大值'},
-                                        {type: 'min', name: '最小值'}
-                                    ]
-                                },
-                                markLine: {
-                                    data: [
-                                        {type: 'average', name: '平均值'}
-                                    ]
-                                }
-                            },
-                            {
-                                name:'最低分数',
-                                type:'line',
-                                data:[1, -2, 2, 5, 3, 2, 0],
-                                markPoint: {
-                                    data: [
-                                        {name: '最低分', value: -2, xAxis: 1, yAxis: -1.5}
-                                    ]
-                                },
-                                markLine: {
-                                    data: [
-                                        {type: 'average', name: '平均值'},
-                                        [{
-                                            symbol: 'none',
-                                            x: '90%',
-                                            yAxis: 'max'
-                                        }, {
-                                            symbol: 'circle',
-                                            label: {
-                                                normal: {
-                                                    position: 'start',
-                                                    formatter: '最大值'
+                            $("#main"+rtn.index).html(shtml);
+                            for(var key in data.data){
+                                var preExam = data.data[key]
+                                myChart = echarts.init(document.getElementById('submain'+key), 'infographic');
+                                option = {
+                                    title: {
+                                        text: preExam["title"],
+                                        left: 'center'
+                                    },
+                                    tooltip: {
+                                        trigger: 'item',
+                                        formatter: "{a} <br/>{b}: {c} ({d}%)"
+                                    },
+                                    legend: {
+                                        bottom: 10,
+                                        x: 'center',
+                                        data:preExam["bottomType"]
+                                    },
+                                    series: [
+                                        {
+                                            name:preExam["subTitle"],
+                                            type:'pie',
+                                            radius: ['50%', '70%'],
+                                            avoidLabelOverlap: false,
+                                            selectedMode: 'single',
+                                            data:preExam["detail"],
+                                            itemStyle: {
+                                                emphasis: {
+                                                    shadowBlur: 10,
+                                                    shadowOffsetX: 0,
+                                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
                                                 }
-                                            },
-                                            type: 'max',
-                                            name: '最高分'
-                                        }]
+                                            }
+                                        }
                                     ]
-                                }
+                                };
+                                // 使用刚指定的配置项和数据显示图表。
+                                myChart.setOption(option);
                             }
-                        ]
-                    };
-                }
-
-                // 使用刚指定的配置项和数据显示图表。
-                myChart.setOption(option);
-                console.log(rtn.index);
-                // alert(rtn.index);
+                        }
+                    }else{
+                        alert(data.message);
+                    }
+                });
             }
         });
     </script>
