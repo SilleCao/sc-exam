@@ -16,6 +16,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AnswerPaperStatServiceImpl implements AnswerPaperStatService {
+    private static final Logger logger = LoggerFactory.getLogger(AnswerPaperStatServiceImpl.class);
 	@Autowired
 	private AnswerPaperStatRepository answerPaperStatRepository;
 	@Autowired
@@ -122,36 +125,45 @@ public class AnswerPaperStatServiceImpl implements AnswerPaperStatService {
         List<ExamQuestionType> examQuestionTypeList = null;
         ExamQuestionType examQuestionType = null;
         List<AnswerPaperStat> answerPaperStatList = new ArrayList<>();
-        for (int i = 2; i <= totalRowNum; i++) {
-            //获得第i行对象
-            Row row = sheet.getRow(i);
-            int totalCellNum = row.getLastCellNum();
+        int curRow = 0;
+        int curColumn = 0;
+        try {
+            for (int i = 2; i <= totalRowNum; i++) {
+                curRow = i;
+                //获得第i行对象
+                Row row = sheet.getRow(i);
+                int totalCellNum = row.getLastCellNum();
 
-            Student student = studentRepository.findByUserCodeAndAndClassGroup(row.getCell(0).getStringCellValue().trim(),
-                    classGroup);
-            answerPaperStat = new AnswerPaperStat();
-            answerPaperStat.setStudent(student);
-            answerPaperStat.setExamPaper(examPaper);
-            answerPaperStat.setClassGroup(classGroup);
+                Student student = studentRepository.findByUserCodeAndAndClassGroup(row.getCell(0).getStringCellValue().trim(),
+                        classGroup);
+                answerPaperStat = new AnswerPaperStat();
+                answerPaperStat.setStudent(student);
+                answerPaperStat.setExamPaper(examPaper);
+                answerPaperStat.setClassGroup(classGroup);
 
-            double totalActualScore = row.getCell(totalCellNum - 1).getNumericCellValue();
-            answerPaperStat.setTotalActualScore(new BigDecimal(totalActualScore));
+                double totalActualScore = row.getCell(totalCellNum - 1).getNumericCellValue();
+                answerPaperStat.setTotalActualScore(new BigDecimal(totalActualScore));
 
-            if(!examPaper.getExamQuestionTypes().isEmpty()){
-                answerQuestionTypeStats = new HashSet<>();
-                examQuestionTypeList = new ArrayList<>(examPaper.getExamQuestionTypes());
-                for (int cellNum = 3; cellNum < totalCellNum - 1; cellNum++){
-                    examQuestionType = getExamQuestionType(examQuestionTypeList, titleRow.getCell(cellNum).getStringCellValue().trim());
-                    answerQuestionTypeStat = new AnswerQuestionTypeStat();
-                    double actualScore = row.getCell(cellNum).getNumericCellValue();
-                    answerQuestionTypeStat.setActualScore(new BigDecimal(actualScore));
-                    answerQuestionTypeStat.setExamQuestionType(examQuestionType);
-                    answerQuestionTypeStat.setAnswerPaperStat(answerPaperStat);
-                    answerQuestionTypeStats.add(answerQuestionTypeStat);
+                if(!examPaper.getExamQuestionTypes().isEmpty()){
+                    answerQuestionTypeStats = new HashSet<>();
+                    examQuestionTypeList = new ArrayList<>(examPaper.getExamQuestionTypes());
+                    for (int cellNum = 3; cellNum < totalCellNum - 1; cellNum++){
+                        curColumn = cellNum;
+                        examQuestionType = getExamQuestionType(examQuestionTypeList, titleRow.getCell(cellNum).getStringCellValue().trim());
+                        answerQuestionTypeStat = new AnswerQuestionTypeStat();
+                        double actualScore = row.getCell(cellNum).getNumericCellValue();
+                        answerQuestionTypeStat.setActualScore(new BigDecimal(actualScore));
+                        answerQuestionTypeStat.setExamQuestionType(examQuestionType);
+                        answerQuestionTypeStat.setAnswerPaperStat(answerPaperStat);
+                        answerQuestionTypeStats.add(answerQuestionTypeStat);
+                    }
                 }
+                answerPaperStat.setAnswerQuestionTypeStats(answerQuestionTypeStats);
+                answerPaperStatList.add(answerPaperStat);
             }
-            answerPaperStat.setAnswerQuestionTypeStats(answerQuestionTypeStats);
-            answerPaperStatList.add(answerPaperStat);
+        } catch (Exception e) {
+            logger.error("导入错误，发生错误的位置为行：{}，列：{}", curRow, curColumn);
+            throw e;
         }
         return answerPaperStatList;
     }

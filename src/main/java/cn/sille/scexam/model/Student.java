@@ -23,7 +23,7 @@ public class Student implements Serializable {
 
     @ManyToOne(cascade = CascadeType.REFRESH)
     @JsonIgnore
-    @JoinColumn(name="class_id")
+    @JoinColumn(name="class_group_id")
     private ClassGroup classGroup;
 
 	public Long getId(){

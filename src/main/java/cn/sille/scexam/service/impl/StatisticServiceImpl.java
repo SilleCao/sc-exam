@@ -95,8 +95,6 @@ public class StatisticServiceImpl implements StatisticService {
     public Map<String, Object> getStudentLossScoreStatistic(Student student){
         Map<String, Object> resultMap = new HashMap<>();
         List<ExamClass> examClassList = examClassRepository.findAllByClassGroup(student.getClassGroup());
-        double[] classAverageScore = new double[examClassList.size()];
-        double[] gradeAverageScore = new double[examClassList.size()];
         for(int i = 0; i < examClassList.size(); i++){
             ExamClass examClass = examClassList.get(i);
             AnswerPaperStat answerPaperStat = answerPaperStatRepository.findByStudentAndExamPaper(student, examClass.getExamPaper());
@@ -200,7 +198,7 @@ public class StatisticServiceImpl implements StatisticService {
             for(int i = 0; i < answerPaperStatList.size(); i++){
                 sumScore = sumScore.add(answerPaperStatList.get(i).getTotalActualScore());
             }
-            averageScore = sumScore.divide(new BigDecimal(answerPaperStatList.size())).doubleValue();
+            averageScore = sumScore.divide(new BigDecimal(answerPaperStatList.size()), 2).doubleValue();
         }
         return averageScore;
     }

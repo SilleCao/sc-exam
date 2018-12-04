@@ -4,9 +4,11 @@ import cn.sille.scexam.model.*;
 import cn.sille.scexam.repository.ClassGroupRepository;
 import cn.sille.scexam.repository.ExamClassRepository;
 import cn.sille.scexam.service.AnswerPaperStatService;
+import cn.sille.scexam.service.ClassGroupService;
 import cn.sille.scexam.service.ExamPaperService;
 import cn.sille.scexam.util.Result;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -35,13 +37,13 @@ public class ExamPaperController {
     @Autowired
     private AnswerPaperStatService answerPaperStatService;
     @Autowired
-    private ClassGroupRepository classGroupRepository;
+    private ClassGroupService classGroupService;
     @Autowired
     private ExamClassRepository examClassRepository;
 
     @RequestMapping("/add")
     public String add(ModelMap model) {
-        List<ClassGroup> classGroupList = classGroupRepository.findAll();
+        List<ClassGroup> classGroupList = classGroupService.getAll();
         model.addAttribute("classGroupList", classGroupList);
         return "/admin/examPaper/edit";
     }
@@ -50,6 +52,7 @@ public class ExamPaperController {
     @RequestMapping("/save")
     public Result save(HttpServletRequest request, ExamPaper examPaper) {
         try {
+            String[] orderBy = request.getParameterValues("orderBy");
             String[] typeNames = request.getParameterValues("typeName");
             String[] targetScores = request.getParameterValues("targetScore");
             if (typeNames != null && typeNames.length > 0) {
@@ -58,7 +61,7 @@ public class ExamPaperController {
                 for (int i = 0; i < typeNames.length; i++) {
                     examQuestionType = new ExamQuestionType();
                     examQuestionType.setTypeName(typeNames[i]);
-                    examQuestionType.setTargetScore(Integer.parseInt(targetScores[i]));
+                    examQuestionType.setTargetScore(new BigDecimal(targetScores[i]));
                     examQuestionType.setExamPaper(examPaper);
                     examQuestionTypeSet.add(examQuestionType);
                 }
@@ -155,7 +158,7 @@ public class ExamPaperController {
 
     @RequestMapping("/downloadPage")
     public String downloadExcelPage(HttpServletRequest request) {
-        String examPaperId = request.getParameter("id");
+        String examPaperId = request.getParameter("examPaperId");
         ExamPaper examPaper = new ExamPaper();
         examPaper.setId(Long.parseLong(examPaperId));
         List<ExamClass> examClasses = examClassRepository.findAllByExamPaper(examPaper);
@@ -166,7 +169,7 @@ public class ExamPaperController {
 
     @RequestMapping("/downloadExcel")
     public void createExcel(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String id = request.getParameter("id");
+        String id = request.getParameter("examPaperId");
         String classGroupId = request.getParameter("classGroupId");
         if (StringUtils.isNotBlank(id)) {
             ExamPaper examPaper = examPaperService.get(Long.parseLong(id));
@@ -207,7 +210,7 @@ public class ExamPaperController {
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, mergeCount - 1));
 
             int startRow = 2;
-            ClassGroup classGroup = classGroupRepository.getOne(Long.parseLong(classGroupId));
+            ClassGroup classGroup = classGroupService.get(Long.parseLong(classGroupId));
             if (classGroup != null & classGroup.getStudents() != null){
                 List<Student> studentList = new ArrayList<>(classGroup.getStudents());
                 Collections.sort(studentList, new Comparator(){

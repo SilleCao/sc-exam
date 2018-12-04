@@ -1,0 +1,64 @@
+<!DOCTYPE html >
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+
+    <header th:include="fragments/common :: head"></header>
+    <script th:inline="javascript">
+        function doDownload() {
+            if($("input[name='classGroupId']:checked").length == 0){
+                javaex.optTip({
+                    content : "请选择考试班级！",
+                    type : "error",
+                    live : 2000
+                });
+            }else{
+                var examPaperId= [[${examPaperId}]];
+                var classGroupId = $("input[name='classGroupId']:checked").val();
+                location.href= [[@{/examPaper/downloadExcel?examPaperId=}]] + examPaperId
+                    + "&classGroupId=" + classGroupId;
+            }
+        }
+    </script>
+
+</head>
+<body>
+
+<!--全部主体内容-->
+<div class="list-content">
+    <!--块元素-->
+    <div class="block">
+        <!--正文内容-->
+        <div class="main">
+            <!--修饰块元素名称-->
+            <div class="banner">
+                <p class="tab fixed">请选择需要下载模板的班级</p>
+            </div>
+            <!--下拉选择框-->
+            <div class="unit">
+                <div class="right">
+                    <span th:each="model : ${examClasses}">
+                        <input type="radio" class="fill" name="classGroupId" th:text="${model.classGroup.className}" th:value="${model.classGroup.id}"/>
+                        <span th:style="${model.status.name()} eq 'UPLOADED' ? 'color:green;font-weight:bold':'color:red;font-weight:bold'" th:text="${model.status.name()} eq 'UPLOADED' ?'(已上传)':'(未上传)'"></span>&nbsp;&nbsp;
+                    </span>
+                </div>
+                <!--清浮动-->
+                <span class="clearfix"></span>
+            </div>
+
+            <!--修饰块元素名称-->
+            <div class="banner">
+                <p class="tab fixed">模板下载</p>
+            </div>
+
+            <div class="unit">
+                <div style="text-align: center;">
+                    <!--表单提交时，必须是input元素，并指定type类型为button，否则ajax提交时，会返回error回调函数-->
+                    <input type="button" id="comfire" class="button yes" onclick="doDownload()" value="下载模板" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<body/>
+<html/>

@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @XmlRootElement
 @Entity
@@ -14,11 +15,14 @@ public class ExamQuestionType implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
+    @Column(name = "order_by")
+    private Integer orderBy;
+
     @Column(name = "type_name")
 	private String typeName;
 
     @Column(name = "target_score")
-	private int targetScore;
+	private BigDecimal targetScore;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JsonIgnore
@@ -33,6 +37,14 @@ public class ExamQuestionType implements Serializable {
 		this.id = id;
 	}
 
+    public Integer getOrderBy() {
+        return orderBy;
+    }
+
+    public void setOrderBy(Integer orderBy) {
+        this.orderBy = orderBy;
+    }
+
     public String getTypeName() {
         return typeName;
     }
@@ -41,11 +53,11 @@ public class ExamQuestionType implements Serializable {
         this.typeName = typeName;
     }
 
-    public int getTargetScore() {
+    public BigDecimal getTargetScore() {
         return targetScore;
     }
 
-    public void setTargetScore(int targetScore) {
+    public void setTargetScore(BigDecimal targetScore) {
         this.targetScore = targetScore;
     }
 
